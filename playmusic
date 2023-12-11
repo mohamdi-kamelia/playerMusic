@@ -1,0 +1,196 @@
+import pygame
+import sys
+import os
+import random
+
+pygame.init()
+
+# Configuration de la fenêtre
+window_width, window_height = 800, 600
+window = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption("Lecteur audio")
+
+# Chemin du répertoire du script
+script_directory = os.path.dirname(os.path.abspath(__file__))
+
+# Charger les pistes audio
+audio_files = ["Stromae - Santé (Official Video).mp3", "Heuss LEnfoiré - Saiyan ft. Gazo (Clip Officiel).mp3",
+               "Indila - Tourner Dans Le Vide.mp3"]
+current_track_index = 0
+total_duration = 0
+
+# Charger la première piste audio
+pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
+total_duration = pygame.mixer.Sound(audio_files[current_track_index]).get_length()
+
+pygame.mixer.music.play()
+
+# Arrière-plan
+background_image_path = os.path.join(script_directory, "arriére plan.png")
+background_image = pygame.image.load(background_image_path)
+background_image = pygame.transform.scale(background_image, (window_width, window_height))
+
+# Position de l'arrière-plan centré
+x = (window_width - background_image.get_width()) // 2
+y = (window_height - background_image.get_height()) // 2
+window.blit(background_image, (10, 10))
+
+# Boutons
+play_button = pygame.image.load("botton play.png")
+pause_button = pygame.image.load("botton pause.png")
+volume_down_button = pygame.image.load("volume_down_button.png")
+volume_up_button = pygame.image.load("volume_up_button.png")
+previous_button = pygame.image.load("nexte droite musique.png")
+next_button = pygame.image.load("nexte gauche musique.png")
+loop_on_button = pygame.image.load("loop_button.png")
+loop_off_button = pygame.image.load("loop button.png")
+add_button_image = pygame.image.load("add_button.png")
+remove_button_image = pygame.image.load("remove_button.png")
+random_button = pygame.image.load("loop_off_button.png")
+
+# Redimensionner l'image ou la surface représentée par la variable
+button_width, button_height = 35, 35
+play_button = pygame.transform.scale(play_button, (button_width, button_height))
+pause_button = pygame.transform.scale(pause_button, (button_width, button_height))
+volume_up_button = pygame.transform.scale(volume_up_button, (button_width, button_height))
+volume_down_button = pygame.transform.scale(volume_down_button, (button_width, button_height))
+next_button = pygame.transform.scale(next_button, (button_width, button_height))
+previous_button = pygame.transform.scale(previous_button, (button_width, button_height))
+loop_on_button = pygame.transform.scale(loop_on_button, (button_width, button_height))
+loop_off_button = pygame.transform.scale(loop_off_button, (button_width, button_height))
+add_button_image = pygame.transform.scale(add_button_image, (button_width, button_height))
+remove_button_image = pygame.transform.scale(remove_button_image, (button_width, button_height))
+random_button = pygame.transform.scale(random_button, (button_width, button_height))
+
+# Positions des boutons
+button_x, button_y = 400, 500
+progress_bar_width = 500
+progress_bar_height = 10
+volume_up_button_x, volume_up_button_y = 450, 530
+volume_down_button_x, volume_down_button_y = 340, 530
+next_button_x, next_button_y = 490, 500
+previous_button_x, previous_button_y = 300, 500
+loop_on_button_x, loop_on_button_y = 200, 500
+loop_off_button_x, loop_off_button_y = 590, 500 
+add_button_x, add_button_y = 20, 560
+remove_button_x, remove_button_y = 750, 560
+random_button_x, random_button_y = 400, 560 
+progress_bar_x, progress_bar_y = 150, 470
+
+# État du lecteur
+is_playing = True
+is_looping = True
+is_random = False
+
+# Variable pour suivre le temps écoulé
+current_time = 0
+
+# Fonction pour ajouter une piste audio
+def add_audio_file(file_path):
+    audio_files.append(file_path)
+
+# Fonction pour supprimer une piste audio
+def remove_audio_file(index):
+    global current_track_index  # Ajout de cette ligne
+    if 0 <= index < len(audio_files):
+        del audio_files[index]
+        # Recharger la première piste audio si la piste supprimée était la piste actuelle
+        if current_track_index >= len(audio_files):
+            current_track_index = 0
+            pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
+            pygame.mixer.music.play()
+def update_progress_bar():
+    global current_time
+    global total_duration
+    if is_playing:
+        elapsed_time = pygame.mixer.music.get_pos() / 1000  # convertir en secondes
+        current_time = elapsed_time  # mettre à jour le temps écoulé
+        progress_ratio = current_time / total_duration
+        progress = progress_ratio * progress_bar_width  # calculer la position de la barre de progression
+        pygame.draw.rect(window, (0, 0, 0), (progress_bar_x, progress_bar_y, progress, progress_bar_height))
+
+    # pygame.time.delay(10)
+# Boucle principale
+clock = pygame.time.Clock()
+volume = 0.9
+running = True
+current_time = 0
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            x, y = event.pos
+            if button_x <= x <= button_x + button_width and button_y <= y <= button_y + button_height:
+                if is_playing:
+                    pygame.mixer.music.pause()
+                else:
+                    pygame.mixer.music.unpause()
+                is_playing = not is_playing
+            elif volume_up_button_x <= x <= volume_up_button_x + button_width and volume_up_button_y <= y <= volume_up_button_y + button_height:
+                volume = min(volume + 0.1, 1.0)
+                pygame.mixer.music.set_volume(volume)
+            elif volume_down_button_x <= x <= volume_down_button_x + button_width and volume_down_button_y <= y <= volume_down_button_y + button_height:
+                volume = max(volume - 0.1, 0.0)
+                pygame.mixer.music.set_volume(volume)
+            elif next_button_x <= x <= next_button_x + button_width and next_button_y <= y <= next_button_y + button_height:
+                if is_random:
+                    current_track_index = random.randint(0, len(audio_files) - 1)
+                else:
+                    current_track_index = (current_track_index + 1) % len(audio_files)
+                pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
+                total_duration = pygame.mixer.Sound(audio_files[current_track_index]).get_length()
+                pygame.mixer.music.play()
+            elif previous_button_x <= x <= previous_button_x + button_width and previous_button_y <= y <= previous_button_y + button_height:
+                # Logique pour revenir à la piste audio précédente
+                if is_random:
+                    current_track_index = random.randint(0, len(audio_files) - 1)
+                else:
+                    current_track_index = (current_track_index - 1) % len(audio_files)
+                pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
+                pygame.mixer.music.play()
+            elif loop_on_button_x <= x <= loop_on_button_x + button_width and loop_on_button_y <= y <= loop_on_button_y + button_height:
+                # Logique pour activer/désactiver la lecture en boucle
+                is_looping = not is_looping
+                if is_looping:
+                    pygame.mixer.music.set_endevent(pygame.USEREVENT)
+            elif random_button_x <= x <= random_button_x + button_width and random_button_y <= y <= random_button_y + button_height:
+                # Logique pour activer/désactiver la lecture aléatoire
+                is_random = not is_random
+                if pygame.mixer.music.get_busy():
+                # Utiliser la clock pour obtenir le temps écoulé en secondes
+                    current_time += clock.get_rawtime() / 1000.0
+                    clock.tick()  # Réinitialiser la clock
+    update_progress_bar()
+          
+
+    # Affichage des boutons
+    window.blit(play_button if not is_playing else pause_button, (button_x, button_y))
+    window.blit(volume_up_button, (volume_up_button_x, volume_up_button_y))
+    window.blit(volume_down_button, (volume_down_button_x, volume_down_button_y))
+    window.blit(next_button, (next_button_x, next_button_y))
+    window.blit(previous_button, (previous_button_x, previous_button_y))
+    window.blit(loop_on_button ,(loop_on_button_x, loop_on_button_y))
+    window.blit(loop_off_button,(loop_off_button_x, loop_off_button_y))
+    window.blit(add_button_image, (add_button_x, add_button_y))
+    window.blit(remove_button_image, (remove_button_x, remove_button_y))
+    window.blit(random_button, (random_button_x, random_button_y))
+   
+    # Mettre à jour l'affichage
+    pygame.display.flip()
+
+    # Contrôler le taux de rafraîchissement
+    clock.tick((30))
+
+pygame.quit()
+sys.exit()
+
+
+
+
+
+
+
+
+
