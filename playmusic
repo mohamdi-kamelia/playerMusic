@@ -14,8 +14,7 @@ pygame.display.set_caption("Lecteur audio")
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
 # Charger les pistes audio
-audio_files = ["Stromae - Santé (Official Video).mp3", "Heuss LEnfoiré - Saiyan ft. Gazo (Clip Officiel).mp3",
-               "Indila - Tourner Dans Le Vide.mp3"]
+audio_files = ["Stromae - Santé (Official Video).mp3", "Heuss LEnfoiré - Saiyan ft. Gazo (Clip Officiel).mp3"]
 current_track_index = 0
 total_duration = 0
 
@@ -80,7 +79,7 @@ progress_bar_x, progress_bar_y = 150, 470
 # État du lecteur
 is_playing = True
 is_looping = True
-is_random = False
+is_random = True
 
 # Variable pour suivre le temps écoulé
 current_time = 0
@@ -99,23 +98,28 @@ def remove_audio_file(index):
             current_track_index = 0
             pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
             pygame.mixer.music.play()
+#fonction pour la barre de progression
 def update_progress_bar():
     global current_time
     global total_duration
+    global start_time
     if is_playing:
         elapsed_time = pygame.mixer.music.get_pos() / 1000  # convertir en secondes
         current_time = elapsed_time  # mettre à jour le temps écoulé
         progress_ratio = current_time / total_duration
         progress = progress_ratio * progress_bar_width  # calculer la position de la barre de progression
         pygame.draw.rect(window, (0, 0, 0), (progress_bar_x, progress_bar_y, progress, progress_bar_height))
-
-    # pygame.time.delay(10)
+    elif current_track_index < len(audio_files):
+        elapsed_time = start_time + current_time
+        progress_ratio = elapsed_time / total_duration
+        progress = progress_ratio * progress_bar_width
+        pygame.draw.rect(window, (0, 0, 0),(progress_bar_x , progress_bar_y , progress ,  progress_bar_height))
 # Boucle principale
 clock = pygame.time.Clock()
 volume = 0.9
 running = True
 current_time = 0
-
+start_time = 0
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -142,29 +146,40 @@ while running:
                 pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
                 total_duration = pygame.mixer.Sound(audio_files[current_track_index]).get_length()
                 pygame.mixer.music.play()
+                start_time = 0
+# Logique pour revenir à la piste audio précédente
             elif previous_button_x <= x <= previous_button_x + button_width and previous_button_y <= y <= previous_button_y + button_height:
-                # Logique pour revenir à la piste audio précédente
                 if is_random:
                     current_track_index = random.randint(0, len(audio_files) - 1)
                 else:
                     current_track_index = (current_track_index - 1) % len(audio_files)
                 pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
+                total_duration = pygame.mixer.Sound(audio_files[current_track_index]).get_length()
                 pygame.mixer.music.play()
+                start_time = 0
+# Logique pour activer/désactiver la lecture en boucle
             elif loop_on_button_x <= x <= loop_on_button_x + button_width and loop_on_button_y <= y <= loop_on_button_y + button_height:
-                # Logique pour activer/désactiver la lecture en boucle
                 is_looping = not is_looping
                 if is_looping:
                     pygame.mixer.music.set_endevent(pygame.USEREVENT)
+                    pygame.mixer.music.play()
+                    start_time = 0
+# Logique pour activer/désactiver la lecture aléatoire
             elif random_button_x <= x <= random_button_x + button_width and random_button_y <= y <= random_button_y + button_height:
-                # Logique pour activer/désactiver la lecture aléatoire
                 is_random = not is_random
                 if pygame.mixer.music.get_busy():
-                # Utiliser la clock pour obtenir le temps écoulé en secondes
+ # Utiliser la clock pour obtenir le temps écoulé en secondes
                     current_time += clock.get_rawtime() / 1000.0
                     clock.tick()  # Réinitialiser la clock
+#rajouter une piste
+            elif add_button_x <= x <= add_button_x + button_width and add_button_y <= y <= add_button_y + button_height:
+                new_audio = "Indila - Tourner Dans Le Vide.mp3 "
+                add_audio_file(new_audio)
+#supprimer une piste 
+            elif remove_button_x <= x <= remove_button_x + button_width and remove_button_y <= y <= remove_button_y + button_height:
+                index_remove = 0
+                remove_audio_file(index_remove)
     update_progress_bar()
-          
-
     # Affichage des boutons
     window.blit(play_button if not is_playing else pause_button, (button_x, button_y))
     window.blit(volume_up_button, (volume_up_button_x, volume_up_button_y))
