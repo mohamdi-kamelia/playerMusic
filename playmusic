@@ -121,6 +121,8 @@ running = True
 current_time = 0
 start_time = 0
 while running:
+    window.fill((255, 255, 255))
+    window.blit(background_image, (10, 10))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
