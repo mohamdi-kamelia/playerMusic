@@ -93,11 +93,13 @@ def remove_audio_file(index):
     global current_track_index  # Ajout de cette ligne
     if 0 <= index < len(audio_files):
         del audio_files[index]
+
         # Recharger la première piste audio si la piste supprimée était la piste actuelle
         if current_track_index >= len(audio_files):
             current_track_index = 0
             pygame.mixer.music.load(os.path.join(script_directory, audio_files[current_track_index]))
             pygame.mixer.music.play()
+
 #fonction pour la barre de progression
 def update_progress_bar():
     global current_time
@@ -114,6 +116,7 @@ def update_progress_bar():
         progress_ratio = elapsed_time / total_duration
         progress = progress_ratio * progress_bar_width
         pygame.draw.rect(window, (0, 0, 0),(progress_bar_x , progress_bar_y , progress ,  progress_bar_height))
+        
 # Boucle principale
 clock = pygame.time.Clock()
 volume = 0.9
@@ -202,7 +205,6 @@ while running:
 
 pygame.quit()
 sys.exit()
-
 
 
 
